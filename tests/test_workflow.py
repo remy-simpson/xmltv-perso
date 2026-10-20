@@ -14,6 +14,8 @@ class Fixture(BaseHTTPRequestHandler):
         self.send_response(200); self.end_headers()
         if self.path == '/jsonld':
             self.wfile.write(b'<script type="application/ld+json">{"@type":"BroadcastEvent","name":"Journal & culture","startDate":"2026-10-20T20:00:00+02:00","endDate":"2026-10-20T21:00:00+02:00"}</script>')
+        elif self.path == '/tf1':
+            self.wfile.write((Path(__file__).parent / 'fixtures/tf1-live.html').read_bytes())
         elif self.path == '/html':
             self.wfile.write(b'<article><h3>Film du soir</h3><time class="start" datetime="2026-10-20T21:00:00+02:00"></time><time class="end" datetime="2026-10-20T23:00:00+02:00"></time></article>')
     def log_message(self, *args): pass
@@ -45,6 +47,25 @@ class Workflow(unittest.TestCase):
         request = Request(self.base + '/api/grab', data=b'{}', headers={'Origin': 'https://other.example'})
         with self.assertRaises(HTTPError) as error: urlopen(request)
         self.assertEqual(error.exception.code, 403)
+
+    def test_tf1_preset_extracts_current_and_next_across_midnight(self):
+        preset = json.loads((server.ROOT / 'public/presets.json').read_text())['tf1']
+        source = {**preset, 'id': 'StarAcademy.fr', 'name': 'Star Academy',
+                  'url': 'http://127.0.0.1:' + str(self.fixture.server_port) + '/tf1'}
+        self.post('/api/sources', {'sources': [source]})
+        state = self.post('/api/grab', {})
+        self.assertEqual(state['errors'], [])
+        self.assertEqual(len(state['programs']), 2)
+        with urlopen(self.base + '/guide.xml') as response:
+            root = ET.fromstring(response.read())
+        programs = root.findall('programme')
+        self.assertEqual([p.findtext('title') for p in programs], ['Star Academy'] * 2)
+        self.assertEqual(programs[0].findtext('desc'), "Journée d'évaluations au Château")
+        self.assertEqual(programs[1].findtext('desc'), 'Les élèves reviennent à 7.30')
+        self.assertEqual(programs[0].get('start'), '20261020190000 +0000')
+        self.assertEqual(programs[0].get('stop'), '20261020233000 +0000')
+        self.assertEqual(programs[1].get('stop'), '20261021050000 +0000')
+        self.assertTrue(all(p.get('channel') == 'StarAcademy.fr' for p in programs))
 
     def test_multi_source_export_and_failure_retention(self):
         base='http://127.0.0.1:'+str(self.fixture.server_port)

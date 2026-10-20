@@ -1,0 +1,14 @@
+{
+  "tf1": {
+    "name": "TF1",
+    "id": "TF1.fr",
+    "url": "https://www.tf1.fr/tf1/direct",
+    "timezone": "Europe/Paris",
+    "mode": "css",
+    "row": "a:has([data-testid='live-page-video-timeslot']), button:has([data-testid='live-page-video-timeslot'])",
+    "title": "h3",
+    "start": "[data-testid='live-page-video-timeslot'] time:first-of-type@datetime",
+    "stop": "[data-testid='live-page-video-timeslot'] time:last-of-type@datetime",
+    "description": ".headline-6"
+  }
+}

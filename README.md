@@ -73,6 +73,14 @@ docker compose build --build-arg PIP_NO_INDEX=1
 docker compose up -d --no-build
 ```
 
-## Source TF1 demandée
+## Format TF1 / TF1+
 
-URL cible : `https://www.tf1.fr/tf1/direct`. Sa collecte n'est pas encore validée : le proxy de l'environnement cloud refuse actuellement l'accès au domaine `www.tf1.fr`. Ce domaine a été ajouté au brouillon des paramètres réseau. Après application de cette modification, il faudra inspecter la page pour déterminer si le guide est présent dans le HTML, les données structurées ou une requête JavaScript. Aucun connecteur TF1 fonctionnel n'est annoncé à ce stade.
+Dans **Sources & chaînes**, cliquez sur **Préremplir le format TF1 / TF1+**. Le bouton choisit le mode HTML et remplit les sélecteurs ; il conserve le nom, l'identifiant et l'URL s'ils sont déjà renseignés. Enregistrez ensuite la source et lancez la collecte.
+
+Le réglage reconnaît les cartes `<a>` et `<button>` contenant `data-testid="live-page-video-timeslot"`. Il lit le nom de l'émission dans `h3`, le détail de l'épisode dans `.headline-6`, et les dates ISO dans les attributs `datetime` des deux éléments `time`. Les dates avec `Z` restent en UTC dans le XMLTV et s'affichent en heure de Paris dans le guide. Les sélecteurs ne contiennent aucun nom d'émission ni horaire fixe.
+
+L'extrait fourni correspond à **Star Academy**, à l'adresse `https://www.tf1.fr/star-academy-le-live-76008164/direct`. Pour cette chaîne, utilisez un nom et un identifiant distincts, par exemple `Star Academy` et `StarAcademy.fr`. Le bouton propose par défaut `https://www.tf1.fr/tf1/direct` ; remplacez cette URL si vous souhaitez un autre direct.
+
+Validation : le test `test_tf1_preset_extracts_current_and_next_across_midnight` collecte une page locale reproduisant la structure fournie et vérifie les deux programmes, les accents, les identifiants de chaîne et les horaires XMLTV après minuit. La collecte du site TF1 réel reste à valider. Le proxy cloud a refusé l'accès à `www.tf1.fr` lors de la vérification initiale ; ce domaine a été ajouté au brouillon réseau.
+
+Si la collecte ne trouve aucun programme sur le VPS, vérifiez que ces cartes existent dans la réponse HTML du serveur, et pas seulement dans l'inspecteur après exécution de JavaScript. Dans ce dernier cas, un rendu navigateur ou un connecteur à la source de données sera nécessaire. Ce réglage collecte uniquement les cartes présentes dans la page, sans garantir un guide complet sur plusieurs jours.

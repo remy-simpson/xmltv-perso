@@ -27,3 +27,16 @@ $('#add-channel').onsubmit=async e=>{e.preventDefault();const source=Object.from
 $('#import-top').onclick=async()=>{if(!state.sources.length){view('channels');message('Ajoutez une source avant de lancer la récupération.');return}const button=$('#import-top');button.disabled=true;button.textContent='Collecte en cours…';message('Récupération des programmes auprès des sources configurées…');try{state=await api('/api/grab',{});render();message(state.errors.length?state.errors.map(e=>e.source+' : '+e.error).join(' | '):'Collecte terminée. Le guide XMLTV est disponible.')}catch(e){message(e.message)}finally{button.disabled=false;button.textContent='↻ Récupérer les programmes'}};
 $('#feed-url').textContent=location.origin+'/guide.xml';
 api('/api/state').then(s=>{state=s;render()}).catch(e=>message('Chargement impossible : '+e.message));
+
+$('#preset-tf1').onclick=async()=>{
+ try {
+  const presets=await api('/presets.json');
+  const form=$('#add-channel');
+  for(const [name,value] of Object.entries(presets.tf1)) {
+   const field=form.elements.namedItem(name);
+   if(field && (!['name','id','url'].includes(name)||!field.value.trim())) field.value=value;
+  }
+  form.querySelector('details').open=true;
+  message('Format TF1 prérempli à partir de l’extrait fourni. Vérifiez le nom, l’identifiant et l’URL de la chaîne, puis enregistrez et lancez une collecte. Seuls les programmes présents dans le HTML reçu seront récupérés.');
+ }catch(e){message(e.message)}
+};
