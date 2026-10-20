@@ -20,7 +20,11 @@ Le serveur écoute sur le port 3000, sur l'interface locale par défaut. Aucun c
 docker compose up -d --build
 ```
 
-Le volume `onde-data` conserve la configuration. Le port publié est limité à `127.0.0.1:3000` : placez votre reverse proxy HTTPS devant ce port. Protégez l'ensemble du service par une authentification au niveau du proxy, ou définissez **les deux** variables `ONDE_USER` et `ONDE_PASSWORD` dans le service Compose, avec des valeurs privées fournies par votre gestionnaire de secrets. Le navigateur demandera alors une connexion. Utilisez HTTPS ; les identifiants Basic ne sont pas chiffrés par HTTP. L'authentification s'applique aussi aux flux XML ; configurez votre lecteur en conséquence.
+Le volume `onde-data` conserve la configuration. Docker publie le port 3000 sur toutes les interfaces : ouvrez `http://IP_DU_VPS:3000` dans votre navigateur. Le guide est disponible à `http://IP_DU_VPS:3000/guide.xml`.
+
+Si un pare-feu est actif sur votre VPS ou chez l'hébergeur, autorisez le port TCP 3000, de préférence uniquement depuis votre adresse IP. Avec UFW déjà actif : `sudo ufw allow from VOTRE_IP_PUBLIQUE to any port 3000 proto tcp`. N'activez pas UFW sans avoir préservé votre accès SSH.
+
+L'application n'impose aucun mot de passe par défaut : limitez l'accès réseau ou définissez **les deux** variables `ONDE_USER` et `ONDE_PASSWORD` dans le service Compose avec des valeurs privées. Le navigateur demandera alors une connexion. Sur HTTP, les identifiants et les données circulent sans chiffrement ; pour un accès public durable, utilisez HTTPS via un reverse proxy. L'authentification s'applique aussi aux flux XML ; configurez votre lecteur en conséquence.
 
 Ce service est un outil d'administration personnel : un utilisateur autorisé peut demander des URL depuis le VPS, y compris sur son réseau local. Ne le rendez pas accessible à des utilisateurs non fiables. Le serveur intégré convient à un usage personnel derrière un proxy, sans authentification multi-utilisateur.
 
